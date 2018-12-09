@@ -1,4 +1,4 @@
-## EID-Fall-2018-Project_3 - Client-AWS IoT-Server
+## EID-Fall-2018-Project_4 - Client-AWS IoT-Server
 ## DHT22 Temperature/Humidity Sensor, QT5, Python3.x, Raspberry Pi 3, AWS, MQTT, Node.js, Boto3
 
 ### PROJECT WORK
@@ -9,8 +9,8 @@ This project is a combined effort of the following people:
 
 #### PROJECT DESCRIPTION
 
-This project uses two Raspberry Pis - one is the sensor while other is the client, both running QT UIs.
-The sensor takes runs an interactive QT UI Interface that takes temperature/humidity values/readings using the read() function from a connected sensor (using the ADAFruit Library and GPIO Pin 4) at an interval of 5 seconds, sends the temperature and humidity values to AWS IoT Thing (EIDProject3) using MQTT in json format every 5 seconds, and displays in the QT 8 values - Maximum, Minimum, Current and Average Temperature and Humidity. Timestamp is also displayed. It also has a button that allows for change of unit from celcius (defaultly obtained) to fahrenheit.
+This project uses two Raspberry Pis - one is the server while other is the client, both running QT UIs.
+The server takes runs an interactive QT UI Interface that takes temperature/humidity values/readings using the read() function from a connected sensor (using the ADAFruit Library and GPIO Pin 4) at an interval of 5 seconds, sends the temperature and humidity values to AWS IoT Thing (EIDProject3) using MQTT in json format every 5 seconds, and displays in the QT 8 values - Maximum, Minimum, Current and Average Temperature and Humidity. Timestamp is also displayed. It also has a button that allows for change of unit from celcius (defaultly obtained) to fahrenheit.
 All of this data from sensor is stored in a .csv (comma-separated value) file.
 The sensor then runs an interactive QT UI that allows the remote client to request and display data as well as plot graphs. (Client)
 In the middle, the data in AWS IoT is handled by a Lambda Function that uses Node JS to calculate various parameters and put all data in an AWS SQS Queue as 8-value messages.
