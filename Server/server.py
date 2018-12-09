@@ -285,7 +285,7 @@ class Ui_DHT22SensorData(object):
             humid_data = '{0:.2f}'.format(humidity)
             pydict = {'Temperature': temp_data, 'Humidity': humid_data}
             jsondict = json.dumps(pydict)
-            self.myAWSIoTMQTTClient.publish('EIDProject3', jsondict, 1)
+            self.myAWSIoTMQTTClient.publish('EIDProject4', jsondict, 1)
 			
             self.TempLastValue.setText(temp_data)
             self.HumLastValue.setText(humid_data + '%')		
@@ -337,7 +337,7 @@ class Ui_DHT22SensorData(object):
             humid_data = '{0:.2f}'.format(humidity)
             pydict = {'Temperature': temp_data, 'Humidity': humid_data}
             jsondict = json.dumps(pydict)
-            self.myAWSIoTMQTTClient.publish('EIDProject3', jsondict, 1)
+            self.myAWSIoTMQTTClient.publish('EIDProject4', jsondict, 1)
             self.TempLastValue.setText(temp_data)
             self.HumLastValue.setText(humid_data + '%')
             self.humiditysum += float(humidity)
