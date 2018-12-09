@@ -39,7 +39,7 @@ var count = 1.0;
     var params = {
      DelaySeconds: 0,
      MessageBody: "{ \"curr_temp\": " + currenttemperature +", " + " \"avg_temp\": " + averagetemperature + "," + "\"max_temp\": " + maximumtemperature + "," + "\"min_temp\": " + minimumtemperature + "," +"\"curr_humid\": " + currenthumidity + "," + "\"avg_humid\": " + averagehumidity + "," + "\"max_humid\": " + maximumhumidity + "," + "\"min_humid\": " + minimumhumidity + "}",
-     QueueUrl: "https://sqs.us-east-1.amazonaws.com/434557601411/EIDProject3_Queue"
+     QueueUrl: "https://sqs.us-east-1.amazonaws.com/434557601411/EIDProject4_Queue"
     };
 
     //Sending message to SQS queue every time an event is generated
