@@ -13,7 +13,7 @@
 
 #import libraries
 import AWSIoTPythonSDK
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient as aws
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
 import Adafruit_DHT 
@@ -22,7 +22,7 @@ import matplotlib.pyplot as mplot
 import csv
 import sys
 import logging
-import ayncio
+import asyncio
 import time
 import socket
 import ssl
@@ -71,22 +71,7 @@ class Ui_DHT22SensorData(object):
         self.temperaturesum = 0
         self.humiditysum = 0
         self.count = 1
-        myAWSIoTMQTTClient = None
-        self.mqttSetup()
-    
-    def mqttSetup(self):
-        self.myAWSIoTMQTTClient = AWSIoTMQTTClient("clientId")
-        self.myAWSIoTMQTTClient.configureEndpoint("a31pa84ob6kseu-ats.iot.us-east-1.amazonaws.com", 8883)
-        self.myAWSIoTMQTTClient.configureCredentials("/home/pi/EID-Fall-2018_Project4/Certificates/CA-cert.pem","/home/pi/EID-Fall-2018_Project4/Certificates/8b645c51ef-private.pem.key", "/home/pi/EID-Fall-2018_Project4/Certificates/8b645c51ef-certificate.pem.crt")
-        self.myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
-        self.myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-        self.myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
-        self.myAWSIoTMQTTClient.configureConnectDisconnectTimeout(10)  # 10 sec
-        self.myAWSIoTMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
-        self.myAWSIoTMQTTClient.connect()
-        print ("MQTT Conn Success")
-        self.myAWSIoTMQTTClient.subscribe('EIDProject4', 1, None)
-	
+    	
     #UI Parameters
     def setupUi(self, DHT22SensorData):
         DHT22SensorData.setObjectName("DHT22SensorData")
@@ -298,7 +283,7 @@ class Ui_DHT22SensorData(object):
             humid_data = '{0:.2f}'.format(humidity)
             pydict = {'Temperature': temp_data, 'Humidity': humid_data}
             jsondict = json.dumps(pydict)
-            self.myAWSIoTMQTTClient.publish('EIDProject4', jsondict, 1)
+            mqttaws_client.publish(topic, jsondict, 1)
 			
             self.TempLastValue.setText(temp_data)
             self.HumLastValue.setText(humid_data + '%')		
@@ -350,7 +335,7 @@ class Ui_DHT22SensorData(object):
             humid_data = '{0:.2f}'.format(humidity)
             pydict = {'Temperature': temp_data, 'Humidity': humid_data}
             jsondict = json.dumps(pydict)
-            self.myAWSIoTMQTTClient.publish('EIDProject4', jsondict, 1)
+            mqttaws_client.publish(topic, jsondict, 1)
             self.TempLastValue.setText(temp_data)
             self.HumLastValue.setText(humid_data + '%')
             self.humiditysum += float(humidity)
@@ -446,7 +431,7 @@ def CoAPserver():
     root.add_resource(('.well-known', 'core'),
                       resource.WKCResource(root.get_resources_as_linkheader))
     root.add_resource(('other', 'block'), BlockResource())
-    asyncio.Task(aiocoap.Contect.create_server_context(root))
+    asyncio.Task(aiocoap.Context.create_server_context(root))
     loop = asyncio.get_event_loop()
     loop.run_forever()
 
@@ -493,6 +478,21 @@ def websock_server():
            
 #main
 if __name__ == "__main__":
+    
+    mqttaws_client = None
+    client_name = 'sensor_rpi'
+    host = 'a31pa84ob6kseu-ats.iot.us-east-1.amazonaws.com'
+    rootCAPath = '/home/pi/EID-Fall-2018_Project4/Certificates/CA-cert.pem'
+    privateKeyPath = '/home/pi/EID-Fall-2018_Project4/Certificates/8b645c51ef-private.pem.key'
+    certificatePath = '/home/pi/EID-Fall-2018_Project4/Certificates/8b645c51ef-certificate.pem.crt'
+    topic = 'EIDProject4'
+    up_topic = 'mqtt_upstream'
+    down_topic = 'mqtt_downstream'
+    mqttaws_client = aws(client_name)
+    mqttaws_client.configureEndpoint(host, 8883)
+    mqttaws_client.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
+    mqttaws_client.connect()
+    
     #Threads
     threads = []
     uithread = threading.Thread(target=UIhandler)
@@ -506,7 +506,7 @@ if __name__ == "__main__":
     
     mqtt_thread = threading.Thread(target=mqtt_server)
     threads.append(mqtt_thread)
-    mqtt.thread.daemon = True
+    mqtt_thread.daemon = True
     mqtt_thread.start()
     
     websocket_thread = threading.Thread(target=websock_server)
