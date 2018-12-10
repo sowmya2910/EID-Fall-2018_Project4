@@ -1,11 +1,11 @@
-## EID-Fall-2018-Project_4 - Client-AWS IoT-Server
-## DHT22 Temperature/Humidity Sensor, QT5, Python3.x, Raspberry Pi 3, AWS, MQTT, Node.js, Boto3
+## EID-Fall-2018-Project_4 - Multiple Protocols & Comparison
+## DHT22 Temperature/Humidity Sensor, QT5, Python3.x, Raspberry Pi 3, AWS, MQTT, CoAP, WebSockets, AMQP (RabbitMQ), Node.js, Boto3
 
 ### PROJECT WORK
 
 This project is a combined effort of the following people:
-#### Sowmya Ramakrishnan - Server, Client side UI, Database, QT Script, calculations, AWS Lambda, SQS, MQTT, Extra Credits
-#### Vinayak Srivatsan Kovalam Mohan - Server-side script, Plot functions, calculations, AWS IoT Setup, Extra Credits
+#### Sowmya Ramakrishnan - Server, Client side UI, Database, QT Script, calculations, AWS Lambda, SQS, MQTT Protocol
+#### Vinayak Srivatsan Kovalam Mohan - Server-side script, Plot functions, calculations, AWS IoT Setup, CoAP, WebSockets, AMQP
 
 #### PROJECT DESCRIPTION
 
@@ -18,18 +18,11 @@ The Client, requesting data, gets it from the AWS Queue (10 or less at a time, u
 The Client and Server sides are implemented in QT.
 AWS is the middleman between the client and the server.
 
-Thus, all minimum requirements have been met. 
+The data from the SQS Queue is now exchanged with the server directly using four protocols - MQTT (Using a broker), CoAP, WebSockets and AMQP (Using a Queue) using multiple threads. The data for each protocol is published on the client-side numerically and graphically, as well as profiled.
 
 #### PROJECT ADDITIONS (EXTRA CREDIT)
 
-- A Login Screen on the Server as well as the Client side to secure the application.
-- AWS CloudWatch for number of IoT messages handled/executed
-- Storing message/values in a DynamoDB table
-- Storing message/values in an S3 Bucket
-- Use of SNS to send message passed as an E-mail to user
-- A Clear button that clears all data displayed and a Close button that closes Window
-- Separate buttons for plots of temperature and humidity
-- A Sensor State button on the QT GUI which tells if the sensor is connected/disconnected
+- Protocol data transfer using AMQP (RabbitMQ) has been attempted.
 
 #### INSTALLATION/RUNNING INSTRUCTIONS
 
@@ -43,7 +36,8 @@ Thus, all minimum requirements have been met.
 - Install AWSIoTPythonSDK using the command : pip install AWSIoTPythonSDK
 - Install boto3 using the command : pip install boto3
 - Install aws-cli using the command : sudo pip3 install aws-cli
-- Install matplotlib using the command : sudo apt-get install python3 matplotlib'
+- Install matplotlib using the command : sudo apt-get install python3 matplotlib\
+- Install aiocoap, asyncio, websocket-client, paho-mqtt, mosquitto, pika, rabbitmq libraries
 - Clone this repository
 #### Server
 - EID-Fall-2018_Project3/Server/
@@ -51,6 +45,7 @@ Thus, all minimum requirements have been met.
 #### Client
 - EID-Fall-2018_Project3.Client/
 - Run client.py to open up QT GUI to request data from SQS Queue and plot graphs
+- Click on the 'Execute Protocol Test' button to start data transfer and profiling using the protocols
 
 #### REFERENCES
 
@@ -65,4 +60,13 @@ Thus, all minimum requirements have been met.
 - https://us-east-2.console.aws.amazon.com/iotv2/home?region=us-east-2#/learnHub
 - http://boto3.readthedocs.io/en/latest/guide/sqs.html
 - https://github.com/aws/aws-iot-device-sdk-python
+- https://github.com/tornadoweb/tornado/issues/2352
+- https://pypi.org/project/paho-mqtt/
+- https://www.rabbitmq.com/tutorials/tutorial-one-python.html
+- https://pika.readthedocs.io/en/0.11.2/examples/asynchronous_consumer_example.html
+- https://pika.readthedocs.io/en/0.11.2/examples/asynchronous_publisher_example.html
+- https://os.mbed.com/cookbook/Websockets-Server
+- https://aiocoap.readthedocs.io/en/latest/examples.html
+
+
 
