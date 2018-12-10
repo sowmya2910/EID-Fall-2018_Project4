@@ -475,9 +475,23 @@ def websock_server():
     myIP = '10.0.0.83'
     print('WebSocket Server started at 10.0.0.83')
     tornado.ioloop.IOLoop.instance().start()
+
+#AMQP Handler
+def rabbitmq_server():
+    channel.queue_declare(queue='up_queue')
+    channel.basic_consume(callback, queue='up_queue', no_ack=True)
+    channel.start_consuming()
+
+def callback(ch, method, properties, body):
+    channel.queue_declare(queue='down_queue')
+    channel.basic_publish(exchange='', routing_key='down_queue', body=body)
+    
            
 #main
 if __name__ == "__main__":
+    
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    channel = connection.channel()
     
     mqttaws_client = None
     client_name = 'sensor_rpi'
@@ -513,3 +527,8 @@ if __name__ == "__main__":
     threads.append(websocket_thread)
     websocket_thread.daemon = True
     websocket_thread.start()
+    
+    rabbitmq_thread = threading.Thread(target=rabbitmq_server)
+    threads.append(rabbitmq_thread)
+    rabbitmq_thread.daemon = True
+    rabbitmq_thread.start()
