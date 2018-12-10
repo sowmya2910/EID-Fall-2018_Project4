@@ -18,7 +18,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
 import Adafruit_DHT 
 import datetime
-import matplotlib.pyplot as mplot
+import matplotlib.pyplot as plt
 import csv
 import sys
 import logging
