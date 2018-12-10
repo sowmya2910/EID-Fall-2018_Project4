@@ -18,14 +18,27 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
 import Adafruit_DHT 
 import datetime
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as mplot
 import csv
 import sys
+import logging
+import ayncio
 import time
 import socket
 import ssl
 import os
 import json
+import numpy
+import pika
+import aiocoap.resource as resource
+import paho.mqtt.client as mqtt
+import tornado.httpserver
+import tornado.websocket
+import tornado.ioloop
+import tornado.web
+import threading
+import aiocoap
+
 
 class Login(QtWidgets.QDialog):
     def __init__(self, parent=None):
@@ -58,7 +71,7 @@ class Ui_DHT22SensorData(object):
         self.temperaturesum = 0
         self.humiditysum = 0
         self.count = 1
-        myAWSIoTMQTClient = None
+        myAWSIoTMQTTClient = None
         self.mqttSetup()
     
     def mqttSetup(self):
@@ -401,11 +414,20 @@ class Ui_DHT22SensorData(object):
         plt.plot(i,y,'r')
         plt.title('Temperature Variation Graph')
         fig2.savefig('tempgraph.jpg')
+
+#Connection blocking for CoAP
+class BlockResource(resource.Resource):
+    
+    def set_content(self, content):
+        self.content = content
+    
+    async def render_put(self, request):
+        self.set_content(request.payload)
+        return aiocoap.Message(code=aiocoap.CHANGED, payload=self.content)
+    
 		
-#main
-if __name__ == "__main__":
-    import sys
-	
+#UI Handler
+def UIhandler():
     app = QtWidgets.QApplication(sys.argv)
     login = Login()
     if login.exec_() == QtWidgets.QDialog.Accepted:
@@ -414,3 +436,80 @@ if __name__ == "__main__":
         ui.setupUi(DHT22SensorData)
         DHT22SensorData.show()
         sys.exit(app.exec_())
+        
+#CoAP Handler
+def CoAPserver():
+    #Creation of resource tree
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    root = resource.Site()
+    root.add_resource(('.well-known', 'core'),
+                      resource.WKCResource(root.get_resources_as_linkheader))
+    root.add_resource(('other', 'block'), BlockResource())
+    asyncio.Task(aiocoap.Contect.create_server_context(root))
+    loop = asyncio.get_event_loop()
+    loop.run_forever()
+
+#MQTT Handler
+def mqtt_server():
+    client = mqtt.Client()
+    client.connect("test.mosquitto.org",1883,60)
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.loop_forever()
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected, with result code " +str(rc))
+    client.subscribe(up_topic)
+
+def on_message(client, userdata, msg):
+    client.publish(down_topic, msg.payload)
+    
+#WebSocket Handler
+class WSHandler(tornado.websocket.WebSocketHandler):
+    def open(self):
+        print('WebSocket connection!')
+        
+    def on_message(self, message):
+        self.write_message(message)
+        
+    def on_close(self):
+        print('Connection closed!')
+        
+    def check_origin(self, origin):
+        return True
+
+application = tornado.web.Application([
+    (r'/ws', WSHandler)])
+
+def websock_server():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    http_server = tornado.httpserver.HTTPServer(application)
+    port = 8888
+    http_server.listen(8888, address = '10.0.0.83')
+    myIP = '10.0.0.83'
+    print('WebSocket Server started at 10.0.0.83')
+    tornado.ioloop.IOLoop.instance().start()
+           
+#main
+if __name__ == "__main__":
+    #Threads
+    threads = []
+    uithread = threading.Thread(target=UIhandler)
+    threads.append(uithread)
+    uithread.start()
+    
+    coapthread = threading.Thread(target=CoAPserver)
+    threads.append(coapthread)
+    coapthread.daemon = True
+    coapthread.start()
+    
+    mqtt_thread = threading.Thread(target=mqtt_server)
+    threads.append(mqtt_thread)
+    mqtt.thread.daemon = True
+    mqtt_thread.start()
+    
+    websocket_thread = threading.Thread(target=websock_server)
+    threads.append(websocket_thread)
+    websocket_thread.daemon = True
+    websocket_thread.start()
