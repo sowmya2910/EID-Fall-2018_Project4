@@ -1,4 +1,17 @@
+# -*- coding: utf-8 -*-
 
+# Form implementation generated from reading ui file 'EIDProject3Client.ui'
+#
+# Created by: PyQt5 UI code generator 5.7
+#
+# WARNING! All changes made in this file will be lost!
+
+# Function to display QT GUI and run a weather-monitoring application on the Client-side, to request and receive data from AWS SQS, display and plot Temperature and Humidity Plots (Last 10 values)
+#
+# Authors: Sowmya Ramakrishnan and Vinayak Srivatsan Kovalam Mohan
+#
+
+#Import libraries
 import json
 import sys
 import time
@@ -16,6 +29,7 @@ import pika #for rabbitmq
 import threading
 import asyncio
 
+#A class for login
 class Login(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Login, self).__init__(parent)
@@ -35,9 +49,11 @@ class Login(QtWidgets.QDialog):
         else:
             QtWidgets.QMessageBox.warning(
                 self, 'Error', 'Wrong username or password. Try Again!')
-    
+            
+#Main Class    
 class Ui_MainWindow(object):
 
+    #Initialization of variables
     def __init__(self):
         self.sqs = boto3.resource('sqs')
         self.queue = self.sqs.get_queue_by_name(QueueName='EIDProject4_Queue') #get queue by name
@@ -60,7 +76,7 @@ class Ui_MainWindow(object):
         self.message_num=[]
         self.rabbitmq_time=[]
 
-        
+    #UI     
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("EIDProject4 - Client")
         MainWindow.resize(1316, 671)
@@ -95,6 +111,7 @@ class Ui_MainWindow(object):
         self.getdata_2.setObjectName("getdata_2")
         MainWindow.setCentralWidget(self.centralWidget)
 
+        #Function Declarations
         self.retranslateUi(MainWindow)
         self.Close.clicked.connect(MainWindow.close)
         self.ClearMessage.clicked.connect(self.MessageBox.clear)
@@ -126,7 +143,7 @@ class Ui_MainWindow(object):
             for msg in list_val:
                 msgbody = ast.literal_eval(msg.body)  # Appending of data
                 queue_list.append(msgbody)
-                msg.delete()    # To delete the msg
+                msg.delete()  
                 self.readings += 1
         if queue_list:
             for mesg in queue_list:
@@ -150,12 +167,11 @@ class Ui_MainWindow(object):
                                 "Avg Temp: {0:.2f}".format((avg_t*self.multiplication_indicator)+self.addition_indicator) + self.unit + "\n" + \
                                 "Avg Hum: "+ str(avg_h) + " %\n\n"
             self.MessageBox.setText("Obtained Data:\n"  + self.output + "\nTimestamp: " + str(datetime.datetime.now()))
-            #self.plotGraph()
-        #error check
         else:
             self.MessageBox.setText("Error Fetching Data \n")
             
-    def time_protocols(self): #function to calculate the execution time for protocols
+    #Protocol roundtrip execution time calculation
+    def time_protocols(self): 
         self.get_data()
         print("\n CoAP Data:\n")
         coapthread = threading.Thread(target=self.coap_collect)
@@ -208,6 +224,7 @@ class Ui_MainWindow(object):
         plt.ylabel('Temperature Celsius')
         plt.xlabel('readings')
         plt.show()
+        
     def plothumGraph(self):
         self.get_data()
         plt.plot(range(self.readings), self.max_humid_list, 'r-', label='Max Hum')  #red
@@ -220,7 +237,8 @@ class Ui_MainWindow(object):
         plt.xlabel('Number of readings')
         plt.show()
         
-    def plotoutputprotocol(self): #funcion for plotting the protocols
+    #Protocol plot
+    def plotoutputprotocol(self): 
         plt.plot(self.message_num, self.mqtt_time, 'g-', label='MQTT')
         plt.plot(self.message_num, self.coap_time, 'y-', label='CoAP')
         plt.plot(self.message_num, self.websockets_time, 'r-', label='Websockets')
@@ -231,7 +249,6 @@ class Ui_MainWindow(object):
         plt.xlabel('Messages')
         plt.show()
     
-    #function for coapPut
     async def coapPUT(self, data):
         context = await Context.create_client_context()
         await asyncio.sleep(1)
@@ -280,6 +297,7 @@ def on_message(client, userdata, msg):
     print(str(msg.payload))
     mqtt_msgevent.set()
 
+#Main
 if __name__ == "__main__":
     ws = create_connection("ws://10.0.0.83:8888/ws")
     ip = "10.0.0.83" 
